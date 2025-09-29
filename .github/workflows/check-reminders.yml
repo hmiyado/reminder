@@ -1,0 +1,29 @@
+name: Check Reminders
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 毎日午前9時（日本時間）に実行（UTC 0時 = JST 9時）
+  workflow_dispatch:  # 手動実行も可能
+
+jobs:
+  check-reminders:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Deno
+      uses: denoland/setup-deno@v1
+      with:
+        deno-version: v1.x
+
+    - name: Check for reminder tasks
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        TZ: Asia/Tokyo
+      run: deno run --allow-read --allow-net --allow-env scripts/check_tasks.ts

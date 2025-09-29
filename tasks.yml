@@ -1,0 +1,22 @@
+tasks:
+  - name: "サンプル1"
+    interval_months: 12
+    last_completed: "2024-10-01"
+    next_due: "2025-10-01"
+    description: "サンプル1"
+
+  - name: "サンプル2"
+    interval_months: 12
+    last_completed: "2024-11-01"
+    next_due: "2025-11-01"
+    description: "サンプル2"
+
+  - name: "サンプル3"
+    interval_months: 12
+    last_completed: "2024-12-01"
+    next_due: "2025-12-01"
+    description: "サンプル3"
+
+settings:
+  reminder_days_before: 30
+  timezone: "Asia/Tokyo"

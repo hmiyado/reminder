@@ -1,0 +1,59 @@
+name: Update Completed Task
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  update-task:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: read
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Deno
+      uses: denoland/setup-deno@v1
+      with:
+        deno-version: v1.x
+
+    - name: Check if issue is a reminder
+      id: check-reminder
+      run: |
+        if [[ "${{ github.event.issue.title }}" == *"📅"* ]] && [[ "${{ github.event.issue.title }}" == *"期限通知"* ]]; then
+          echo "is_reminder=true" >> $GITHUB_OUTPUT
+          echo "Issue is a reminder task"
+        else
+          echo "is_reminder=false" >> $GITHUB_OUTPUT
+          echo "Issue is not a reminder task"
+        fi
+
+    - name: Update task dates
+      if: steps.check-reminder.outputs.is_reminder == 'true'
+      env:
+        ISSUE_TITLE: ${{ github.event.issue.title }}
+        COMPLETED_DATE: ${{ github.event.issue.closed_at }}
+        TZ: Asia/Tokyo
+      run: |
+        # Convert ISO datetime to YYYY-MM-DD format
+        COMPLETED_DATE_FORMATTED=$(echo $COMPLETED_DATE | cut -d'T' -f1)
+        export COMPLETED_DATE=$COMPLETED_DATE_FORMATTED
+        deno run --allow-read --allow-write --allow-env scripts/update_task.ts
+
+    - name: Commit updated tasks.yml
+      if: steps.check-reminder.outputs.is_reminder == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add tasks.yml
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "📅 Update task dates after completing: ${{ github.event.issue.title }}"
+          git push
+        fi
