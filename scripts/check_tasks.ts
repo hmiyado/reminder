@@ -3,20 +3,14 @@
 import { parse } from "https://deno.land/std@0.200.0/yaml/mod.ts";
 import { formatDate } from "./date_utils.ts";
 import { Config, Task, getTasksToRemind, filterTasksNeedingReminders } from "./reminder_logic.ts";
+import { fetchExistingIssues, getGitHubConfig, GitHubConfig } from "./github.ts";
 
 async function readConfig(): Promise<Config> {
   const content = await Deno.readTextFile("tasks.yml");
   return parse(content) as Config;
 }
 
-async function createGitHubIssue(task: Task, reminderDate: string): Promise<void> {
-  const token = Deno.env.get("GITHUB_TOKEN");
-  const repo = Deno.env.get("GITHUB_REPOSITORY");
-
-  if (!token || !repo) {
-    console.log("GitHub token or repository not found - skipping issue creation");
-    return;
-  }
+async function createGitHubIssue(task: Task, reminderDate: string, githubConfig: GitHubConfig): Promise<void> {
 
   const issueTitle = `📅 ${task.name} - 期限通知`;
   const issueBody = `## 📋 タスク詳細
@@ -46,10 +40,10 @@ async function createGitHubIssue(task: Task, reminderDate: string): Promise<void
   };
 
   try {
-    const response = await fetch(`https://api.github.com/repos/${repo}/issues`, {
+    const response = await fetch(`https://api.github.com/repos/${githubConfig.repo}/issues`, {
       method: "POST",
       headers: {
-        "Authorization": `token ${token}`,
+        "Authorization": `token ${githubConfig.token}`,
         "Accept": "application/vnd.github.v3+json",
         "Content-Type": "application/json"
       },
@@ -76,7 +70,17 @@ async function checkTasks(): Promise<void> {
 
     console.log(`🔍 Checking tasks for ${todayString}`);
 
-    const taskReminders = getTasksToRemind(config, today);
+    // Fetch existing issues from GitHub
+    const githubConfig = getGitHubConfig();
+    const existingIssues = githubConfig ? await fetchExistingIssues(githubConfig) : [];
+
+    if (githubConfig) {
+      console.log(`📂 Found ${existingIssues.length} existing issues`);
+    } else {
+      console.log("⚠️  GitHub token or repository not found - skipping issue creation");
+    }
+
+    const taskReminders = getTasksToRemind(config, today, existingIssues);
 
     for (const tr of taskReminders) {
       console.log(`📋 Task: ${tr.task.name}`);
@@ -84,10 +88,14 @@ async function checkTasks(): Promise<void> {
       console.log(`   Reminder: ${tr.reminderDate}`);
 
       if (tr.shouldRemind) {
-        console.log(`🚨 Creating reminder for: ${tr.task.name}`);
-        await createGitHubIssue(tr.task, tr.reminderDate);
+        if (githubConfig) {
+          console.log(`🚨 Creating reminder for: ${tr.task.name}`);
+          await createGitHubIssue(tr.task, tr.reminderDate, githubConfig);
+        } else {
+          console.log(`⏭️  Would create reminder for: ${tr.task.name} (GitHub not configured)`);
+        }
       } else {
-        console.log(`⏱️  Not yet time for reminder`);
+        console.log(`⏱️  Not yet time for reminder or issue already exists`);
       }
     }
   } catch (error) {
