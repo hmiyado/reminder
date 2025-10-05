@@ -1,6 +1,7 @@
 #!/usr/bin/env -S deno run --allow-read --allow-net --allow-env
 
 import { parse } from "https://deno.land/std@0.200.0/yaml/mod.ts";
+import { parseDate, addDays, formatDate } from "./date_utils.ts";
 
 interface Task {
   name: string;
@@ -23,20 +24,6 @@ interface Config {
 async function readConfig(): Promise<Config> {
   const content = await Deno.readTextFile("tasks.yml");
   return parse(content) as Config;
-}
-
-function parseDate(dateString: string): Date {
-  return new Date(dateString);
-}
-
-function addDays(date: Date, days: number): Date {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
-}
-
-function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
 }
 
 async function createGitHubIssue(task: Task, reminderDate: string): Promise<void> {
