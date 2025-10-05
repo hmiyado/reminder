@@ -132,7 +132,7 @@ COMPLETED_DATE="2024-06-15" \
 deno run --allow-read --allow-write --allow-env scripts/update_task.ts
 
 # ユニットテストの実行
-deno test --allow-write --allow-read scripts/check_tasks.test.ts
+deno test --allow-write --allow-read scripts/
 ```
 
 ## 📄 ライセンス
