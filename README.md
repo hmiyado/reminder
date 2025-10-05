@@ -130,6 +130,9 @@ deno run --allow-read --allow-net --allow-env scripts/check_tasks.ts
 ISSUE_TITLE="📅 労働保険年度更新 - 期限通知" \
 COMPLETED_DATE="2024-06-15" \
 deno run --allow-read --allow-write --allow-env scripts/update_task.ts
+
+# ユニットテストの実行
+deno test --allow-write --allow-read scripts/check_tasks.test.ts
 ```
 
 ## 📄 ライセンス
