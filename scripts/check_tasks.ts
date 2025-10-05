@@ -1,25 +1,8 @@
 #!/usr/bin/env -S deno run --allow-read --allow-net --allow-env
 
 import { parse } from "https://deno.land/std@0.200.0/yaml/mod.ts";
-import { parseDate, addDays, formatDate } from "./date_utils.ts";
-
-interface Task {
-  name: string;
-  interval_months: number;
-  last_completed: string;
-  next_due: string;
-  description: string;
-}
-
-interface Settings {
-  reminder_days_before: number;
-  timezone: string;
-}
-
-interface Config {
-  tasks: Task[];
-  settings: Settings;
-}
+import { formatDate } from "./date_utils.ts";
+import { Config, Task, getTasksToRemind, filterTasksNeedingReminders } from "./reminder_logic.ts";
 
 async function readConfig(): Promise<Config> {
   const content = await Deno.readTextFile("tasks.yml");
@@ -93,18 +76,16 @@ async function checkTasks(): Promise<void> {
 
     console.log(`🔍 Checking tasks for ${todayString}`);
 
-    for (const task of config.tasks) {
-      const dueDate = parseDate(task.next_due);
-      const reminderDate = addDays(dueDate, -config.settings.reminder_days_before);
-      const reminderDateString = formatDate(reminderDate);
+    const taskReminders = getTasksToRemind(config, today);
 
-      console.log(`📋 Task: ${task.name}`);
-      console.log(`   Due: ${task.next_due}`);
-      console.log(`   Reminder: ${reminderDateString}`);
+    for (const tr of taskReminders) {
+      console.log(`📋 Task: ${tr.task.name}`);
+      console.log(`   Due: ${tr.task.next_due}`);
+      console.log(`   Reminder: ${tr.reminderDate}`);
 
-      if (todayString === reminderDateString) {
-        console.log(`🚨 Creating reminder for: ${task.name}`);
-        await createGitHubIssue(task, reminderDateString);
+      if (tr.shouldRemind) {
+        console.log(`🚨 Creating reminder for: ${tr.task.name}`);
+        await createGitHubIssue(tr.task, tr.reminderDate);
       } else {
         console.log(`⏱️  Not yet time for reminder`);
       }
