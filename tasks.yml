@@ -6,8 +6,8 @@ tasks:
     description: サンプル1
   - name: サンプル2
     interval_months: 12
-    last_completed: '2024-11-01'
-    next_due: '2025-11-01'
+    last_completed: '2025-10-05'
+    next_due: '2026-10-05'
     description: サンプル2
   - name: サンプル3
     interval_months: 12
