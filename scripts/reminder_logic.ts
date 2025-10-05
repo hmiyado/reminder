@@ -6,11 +6,13 @@ export interface Task {
   last_completed: string;
   next_due: string;
   description: string;
+  assignee?: string;
 }
 
 export interface Settings {
   reminder_days_before: number;
   timezone: string;
+  assignee?: string;
 }
 
 export interface Config {

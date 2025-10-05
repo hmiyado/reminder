@@ -74,6 +74,7 @@ settings:
   last_completed: "2024-01-15"   # 前回完了日
   next_due: "2025-01-15"         # 次回期限
   description: "タスクの説明"
+  assignee: "GitHubユーザー名"   # (オプション) タスク固有の担当者。未指定時はsettings.assigneeを使用
 ```
 
 ### 自動リマインド
@@ -101,6 +102,7 @@ settings:
 settings:
   reminder_days_before: 30  # 30日前 → 任意の日数に変更可能
   timezone: "Asia/Tokyo"
+  assignee: "GitHubユーザー名"  # (オプション) デフォルト担当者
 ```
 
 ### チェック頻度の変更

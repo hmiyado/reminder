@@ -4,6 +4,7 @@ tasks:
     last_completed: '2024-10-01'
     next_due: '2025-10-01'
     description: サンプル1
+    assignee: hmiyado
   - name: サンプル2
     interval_months: 12
     last_completed: '2025-10-05'
@@ -17,3 +18,4 @@ tasks:
 settings:
   reminder_days_before: 30
   timezone: Asia/Tokyo
+  assignee: default-user

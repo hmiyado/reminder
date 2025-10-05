@@ -5,7 +5,12 @@ import { Task, getTasksToRemind } from "./reminder_logic.ts";
 import { fetchExistingIssues, getGitHubConfig, GitHubConfig } from "./github.ts";
 import { readConfig } from "./config.ts";
 
-async function createGitHubIssue(task: Task, reminderDate: string, githubConfig: GitHubConfig): Promise<void> {
+async function createGitHubIssue(
+  task: Task,
+  reminderDate: string,
+  githubConfig: GitHubConfig,
+  defaultAssignee?: string
+): Promise<void> {
 
   const issueTitle = `📅 ${task.name} - 期限通知`;
   const issueBody = `## 📋 タスク詳細
@@ -28,11 +33,17 @@ async function createGitHubIssue(task: Task, reminderDate: string, githubConfig:
 ---
 *この通知は期限の30日前に自動作成されました*`;
 
-  const issueData = {
+  const issueData: any = {
     title: issueTitle,
     body: issueBody,
     labels: ["reminder", "task"]
   };
+
+  // Use task-specific assignee if available, otherwise use default assignee
+  const assignee = task.assignee || defaultAssignee;
+  if (assignee) {
+    issueData.assignees = [assignee];
+  }
 
   try {
     const response = await fetch(`https://api.github.com/repos/${githubConfig.repo}/issues`, {
@@ -85,7 +96,7 @@ async function checkTasks(): Promise<void> {
       if (tr.shouldRemind) {
         if (githubConfig) {
           console.log(`🚨 Creating reminder for: ${tr.task.name}`);
-          await createGitHubIssue(tr.task, tr.reminderDate, githubConfig);
+          await createGitHubIssue(tr.task, tr.reminderDate, githubConfig, config.settings.assignee);
         } else {
           console.log(`⏭️  Would create reminder for: ${tr.task.name} (GitHub not configured)`);
         }
