@@ -1,24 +1,8 @@
 #!/usr/bin/env -S deno run --allow-read --allow-write --allow-env
 
 import { parse, stringify } from "https://deno.land/std@0.200.0/yaml/mod.ts";
-
-interface Task {
-  name: string;
-  interval_months: number;
-  last_completed: string;
-  next_due: string;
-  description: string;
-}
-
-interface Settings {
-  reminder_days_before: number;
-  timezone: string;
-}
-
-interface Config {
-  tasks: Task[];
-  settings: Settings;
-}
+import { parseDate, formatDate } from "./date_utils.ts";
+import { Config, Task } from "./reminder_logic.ts";
 
 async function readConfig(): Promise<Config> {
   const content = await Deno.readTextFile("tasks.yml");
@@ -30,18 +14,10 @@ async function writeConfig(config: Config): Promise<void> {
   await Deno.writeTextFile("tasks.yml", yamlContent);
 }
 
-function parseDate(dateString: string): Date {
-  return new Date(dateString);
-}
-
 function addMonths(date: Date, months: number): Date {
   const result = new Date(date);
   result.setMonth(result.getMonth() + months);
   return result;
-}
-
-function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
 }
 
 function extractTaskNameFromIssueTitle(issueTitle: string): string {
