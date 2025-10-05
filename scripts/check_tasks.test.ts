@@ -1,13 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.200.0/assert/mod.ts";
 import { parseDate, addDays, formatDate } from "./date_utils.ts";
 
-// Test helper to create a temporary tasks.yml file
-async function createTestConfig(content: string): Promise<string> {
-  const tempFile = await Deno.makeTempFile({ suffix: ".yml" });
-  await Deno.writeTextFile(tempFile, content);
-  return tempFile;
-}
-
 Deno.test("config parsing - should handle valid YAML", async () => {
   const testYaml = `
 tasks:
@@ -22,7 +15,8 @@ settings:
   timezone: "Asia/Tokyo"
 `;
 
-  const tempFile = await createTestConfig(testYaml);
+  const tempFile = await Deno.makeTempFile({ suffix: ".yml" });
+  await Deno.writeTextFile(tempFile, testYaml);
 
   try {
     const { parse } = await import("https://deno.land/std@0.200.0/yaml/mod.ts");

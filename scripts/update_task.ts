@@ -1,18 +1,7 @@
 #!/usr/bin/env -S deno run --allow-read --allow-write --allow-env
 
-import { parse, stringify } from "https://deno.land/std@0.200.0/yaml/mod.ts";
 import { parseDate, formatDate } from "./date_utils.ts";
-import { Config, Task } from "./reminder_logic.ts";
-
-async function readConfig(): Promise<Config> {
-  const content = await Deno.readTextFile("tasks.yml");
-  return parse(content) as Config;
-}
-
-async function writeConfig(config: Config): Promise<void> {
-  const yamlContent = stringify(config);
-  await Deno.writeTextFile("tasks.yml", yamlContent);
-}
+import { readConfig, writeConfig } from "./config.ts";
 
 function addMonths(date: Date, months: number): Date {
   const result = new Date(date);

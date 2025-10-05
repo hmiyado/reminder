@@ -1,14 +1,9 @@
 #!/usr/bin/env -S deno run --allow-read --allow-net --allow-env
 
-import { parse } from "https://deno.land/std@0.200.0/yaml/mod.ts";
 import { formatDate } from "./date_utils.ts";
-import { Config, Task, getTasksToRemind, filterTasksNeedingReminders } from "./reminder_logic.ts";
+import { Task, getTasksToRemind } from "./reminder_logic.ts";
 import { fetchExistingIssues, getGitHubConfig, GitHubConfig } from "./github.ts";
-
-async function readConfig(): Promise<Config> {
-  const content = await Deno.readTextFile("tasks.yml");
-  return parse(content) as Config;
-}
+import { readConfig } from "./config.ts";
 
 async function createGitHubIssue(task: Task, reminderDate: string, githubConfig: GitHubConfig): Promise<void> {
 
